@@ -18,6 +18,8 @@
   npm run start-dev
   ```
 
+<b>❗Aviso: O projeto executa migrations automaticamente então quando a aplicação iniciar, o banco já estará em sua máquina. </b>
+
   <br>
 
 # Para experimentar os endpoints, siga estes passos:
