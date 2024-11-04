@@ -9,6 +9,7 @@
   ```
 - Instale o Node na sua máquina (Preferencialmente a versão 18 para evitar bugs)
 - Clone o repositório para uma pasta
+- Crie um arquivo .env com a mesma estrutura do exemplo (.env.example), substituindo todos os placeholders por valores reais que correspondem a realidade
 - Instale as dependências do projeto
   ```
   npm i
