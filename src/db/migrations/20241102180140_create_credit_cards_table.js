@@ -19,7 +19,6 @@ export const up = function (knex) {
       .inTable("users");
     table.string("card_name", 255);
     table.decimal("limit_amount", 15, 2).notNullable();
-    table.decimal("available_credit", 15, 2).notNullable();
     table.integer("billing_day").notNullable();
     table.integer("due_day").notNullable();
     table.datetime("created_at").defaultTo(knex.fn.now());

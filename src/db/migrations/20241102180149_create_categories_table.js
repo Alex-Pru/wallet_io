@@ -4,6 +4,12 @@
  */
 export const up = function (knex) {
   return knex.schema.createTable("categories", function (table) {
+    table
+      .integer("wallet_id")
+      .unsigned()
+      .notNullable()
+      .references("id")
+      .inTable("wallets");
     table.increments("id").primary();
     table.string("name", 255).notNullable();
     table.text("description");

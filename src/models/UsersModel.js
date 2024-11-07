@@ -37,4 +37,46 @@ export default class UsersModel {
     }
     return { userId };
   }
+
+  static async removeUser(userId) {
+    let result;
+    try {
+      result = await connection("users").where({ id: userId }).delete();
+    } catch (err) {
+      switch (err.message) {
+        case "Failed to delete user":
+          return { error: errorObject.failedToDelete };
+          break;
+        default:
+          return { error: errorObject.internalServerError };
+          break;
+      }
+    }
+    return result ? { deleted: true } : { deleted: false };
+  }
+
+  static async updateUser(userId, updatedFields) {
+    let updatedRows;
+    try {
+      updatedRows = await connection("users")
+        .where({ id: userId })
+        .update(updatedFields);
+    } catch (err) {
+      return { error: errorObject.internalServerError };
+    }
+    return updatedRows ? { updated: true } : { updated: false };
+  }
+
+  static async getUsersByEmail(emails) {
+    let usersIDs;
+    try {
+      usersIDs = await connection("users")
+        .select("id")
+        .whereIn("email", emails);
+    } catch (err) {
+      return { error: errorObject.fetchUserFail };
+    }
+
+    return { usersIDs };
+  }
 }

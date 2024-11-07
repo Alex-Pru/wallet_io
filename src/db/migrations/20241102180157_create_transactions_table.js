@@ -27,7 +27,7 @@ export const up = function (knex) {
       .unsigned()
       .references("id")
       .inTable("categories");
-    table.enu("tipo", ["income", "expense"]).notNullable();
+    table.enu("type", ["income", "expense"]).notNullable();
     table.decimal("amount", 15, 2).notNullable();
     table.string("title", 255).notNullable();
     table.text("description");
