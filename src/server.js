@@ -4,7 +4,10 @@ import session from "express-session";
 import passport from "passport";
 import "./auth/strategies/google-strategy.js";
 import { sessionStore } from "./db/connection.js";
-import authRoutes from "./routes/authRoutes.js";
+import authRouter from "./routes/authRoutes.js";
+import userRouter from "./routes/UsersRoutes.js";
+import walletRouter from "./routes/WalletsRoutes.js";
+import transactionRouter from "./routes/TransactionsRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -30,7 +33,10 @@ app.get("/api/status", (request, response) => {
   return request.user ? response.send(request.user) : response.sendStatus(401);
 });
 
-app.use("/api/google", authRoutes);
+app.use("/api/google", authRouter);
+app.use("/api/user", userRouter);
+app.use("/api/wallets", walletRouter);
+app.use("/api/transactions", transactionRouter);
 
 const startServer = () => {
   app.listen(PORT, () => {

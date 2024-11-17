@@ -10,7 +10,8 @@ export const up = function (knex) {
       .unsigned()
       .notNullable()
       .references("id")
-      .inTable("wallets");
+      .inTable("wallets")
+      .onDelete("CASCADE");
     table
       .integer("user_id")
       .unsigned()

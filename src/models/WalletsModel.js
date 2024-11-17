@@ -71,31 +71,88 @@ export default class WalletsModel {
     return updatedRows ? { updated: true } : { updated: false };
   }
 
-  static async addUsers(newUsers) {
-    let relationsCreated;
+  static async addUserToWallet(newUser, walletId) {
+    let relationCreated;
     try {
-      relationsCreated = await connection("wallet_users").insert(newUsers);
+      relationCreated = await connection("wallet_users").insert({
+        wallet_id: walletId,
+        user_id: newUser.id,
+        role: newUser.role,
+      });
     } catch (err) {
       return;
     }
 
-    if (relationsCreated[0] !== newUsers.length) {
-      return { error: errorObject.failedToAddUsers };
+    if (!relationCreated[0]) {
+      return { error: errorObject.failedToAddUser };
     }
 
-    return relationsCreated ? { addedUsers: true } : { addedUsers: false };
+    return relationCreated ? { addedUser: true } : { addedUser: false };
   }
 
-  static async removeUser(user) {
+  static async removeUserFromWallet(userId, walletId) {
     let removedRows;
     try {
       removedRows = await connection("wallet_users")
-        .where({ user_id: user.id, wallet_id: user.walletId })
+        .where({ user_id: userId, wallet_id: walletId })
         .delete();
     } catch (err) {
       return { error: errorObject.failedToRemoveUser };
     }
 
     return removedRows ? { removed: true } : { removed: false };
+  }
+
+  static async updateUserWalletRelation(userId, walletId, role) {
+    let updatedRows;
+    try {
+      updatedRows = await connection("wallet_users")
+        .where({
+          user_id: userId,
+          wallet_id: walletId,
+        })
+        .update({ role });
+    } catch (err) {
+      return { error: errorObject.failedToUpdateUserWalletRelation };
+    }
+
+    return updatedRows ? { updated: true } : { updated: false };
+  }
+
+  static async getUserWalletRole(userId, walletId) {
+    let role;
+    try {
+      role = await connection("wallet_users")
+        .where({ user_id: userId, wallet_id: walletId })
+        .select("role");
+    } catch (err) {
+      return { error: errorObject.internalServerError };
+    }
+
+    return { role };
+  }
+
+  static async getWalletDetails(walletId) {
+    let walletDetails;
+    try {
+      walletDetails = await connection("transactions")
+        .where({ wallet_id: walletId })
+        .whereBetween("date", [
+          knex.raw("DATE_FORMAT(NOW(), '%Y-%m-01')"),
+          knex.raw("LAST_DAY(NOW())"),
+        ])
+        .select(
+          knex.raw(
+            'SUM(CASE WHEN type = "income" THEN amount ELSE 0 END) AS totalIncomes'
+          ),
+          knex.raw(
+            'SUM(CASE WHEN type = "expense" THEN amount ELSE 0 END) AS totalExpenses'
+          )
+        );
+    } catch (err) {
+      return { error: errorObject.failedToFetchWalletDetails };
+    }
+
+    return { walletDetails };
   }
 }

@@ -10,10 +10,12 @@ export const up = function (knex) {
       .unsigned()
       .notNullable()
       .references("id")
-      .inTable("wallets");
+      .inTable("wallets")
+      .onDelete("CASCADE");
     table
       .integer("credit_card_id")
       .unsigned()
+      .nullable()
       .references("id")
       .inTable("credit_cards");
     table
@@ -25,8 +27,10 @@ export const up = function (knex) {
     table
       .integer("category_id")
       .unsigned()
+      .nullable()
       .references("id")
-      .inTable("categories");
+      .inTable("categories")
+      .onDelete("SET NULL");
     table.enu("type", ["income", "expense"]).notNullable();
     table.decimal("amount", 15, 2).notNullable();
     table.string("title", 255).notNullable();

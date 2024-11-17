@@ -10,13 +10,15 @@ export const up = function (knex) {
       .unsigned()
       .notNullable()
       .references("id")
-      .inTable("wallets");
+      .inTable("wallets")
+      .onDelete("CASCADE");
     table
       .integer("user_id")
       .unsigned()
       .notNullable()
       .references("id")
-      .inTable("users");
+      .inTable("users")
+      .onDelete("CASCADE");
     table.string("card_name", 255);
     table.decimal("limit_amount", 15, 2).notNullable();
     table.integer("billing_day").notNullable();

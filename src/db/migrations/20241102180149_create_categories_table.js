@@ -9,7 +9,8 @@ export const up = function (knex) {
       .unsigned()
       .notNullable()
       .references("id")
-      .inTable("wallets");
+      .inTable("wallets")
+      .onDelete("CASCADE");
     table.increments("id").primary();
     table.string("name", 255).notNullable();
     table.text("description");

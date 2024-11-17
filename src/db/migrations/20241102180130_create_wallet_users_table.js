@@ -9,13 +9,15 @@ export const up = function (knex) {
       .unsigned()
       .notNullable()
       .references("id")
-      .inTable("wallets");
+      .inTable("wallets")
+      .onDelete("CASCADE");
     table
       .integer("user_id")
       .unsigned()
       .notNullable()
       .references("id")
-      .inTable("users");
+      .inTable("users")
+      .onDelete("CASCADE");
     table.enu("role", ["owner", "participant", "viewer"]).notNullable();
     table.datetime("added_at").defaultTo(knex.fn.now());
     table.primary(["wallet_id", "user_id"]);

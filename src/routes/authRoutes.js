@@ -8,7 +8,7 @@ router.get("/auth", passport.authenticate("google"));
 router.get(
   "/redirect",
   passport.authenticate("google", {
-    successRedirect: "https://youtube.com",
+    successRedirect: "http://localhost:3000/home",
   })
 );
 
