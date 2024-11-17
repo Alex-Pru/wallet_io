@@ -26,7 +26,7 @@
 # Para experimentar os endpoints, siga estes passos:
 
 - Primeiramente, acesse o endpoint de login (utilizando a porta que corresponde à sua realidade): localhost:3000/api/google/auth
-- Se você for redirecionado para o Youtube, deu tudo certo. Quando você acessar outras rotas da aplicação, já estará logado e sua sessão, ativa.
+- Se você for redirecionado para localhost:3000/home, deu tudo certo. Quando você acessar outras rotas da aplicação, já estará logado e sua sessão, ativa.
 - Para experimentar o usuário logado, acesse: localhost:3000/api/status Esta página exibirá as informações do seu cadastro.
 - Para deslogar, use: localhost:3000/api/google/logout
 
