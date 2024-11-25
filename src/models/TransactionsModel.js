@@ -1,87 +1,75 @@
 import knex from "knex";
 import { connection } from "../db/connection.js";
-import errorObject from "../utils/Errors.js";
+import HttpError from "../utils/HttpError.js";
 
 export default class TransactionsModel {
   static async createCategory(newCategory) {
-    let categoryId;
     try {
-      categoryId = await connection("categories").insert({
+      const categoryId = await connection("categories").insert({
         wallet_id: newCategory.wallet,
         name: newCategory.name,
         description: newCategory.description,
       });
+      return categoryId;
     } catch (err) {
-      return { error: errorObject.internalServerError };
+      throw new HttpError("Failed to create category", 500);
     }
-
-    return { categoryId };
   }
 
   static async deleteCategory(categoryId) {
-    let removedRows;
     try {
-      removedRows = await connection("categories")
+      const removedRows = await connection("categories")
         .where({ id: categoryId })
         .delete();
+      return removedRows ? true : false;
     } catch (err) {
-      return { error: errorObject.internalServerError };
+      throw new HttpError("Failed to delete category", 500);
     }
-
-    return removedRows ? { deleted: true } : { deleted: false };
   }
 
   static async updateCategory(categoryId, updatedFields) {
-    let updatedRows;
     try {
-      updatedRows = await connection("categories")
+      const updatedRows = await connection("categories")
         .where({ id: categoryId })
         .update(updatedFields);
+      return updatedRows ? true : false;
     } catch (err) {
-      return { error: errorObject.internalServerError };
+      throw new HttpError("Failed to update category", 500);
     }
-
-    return updatedRows ? { updated: true } : { updated: false };
   }
 
   static async createTransaction(newTransaction) {
-    let transactionId;
-
-    newTransaction.updated_at = null;
-
     try {
-      transactionId = await connection("transactions").insert(newTransaction);
+      newTransaction.updated_at = null;
+      const transactionId = await connection("transactions").insert(
+        newTransaction
+      );
+      return transactionId;
     } catch (err) {
-      return { error: errorObject.internalServerError };
+      throw new HttpError("Failed to create transaction", 500);
     }
-
-    return { transactionId };
   }
 
   static async updateTransaction(transactionId, updatedFields) {
-    let updatedRows;
     try {
-      updatedRows = await connection("transactions")
+      const updatedRows = await connection("transactions")
         .where({ id: transactionId })
         .update(updatedFields);
+      return updatedRows ? true : false;
     } catch (err) {
-      return { error: errorObject.internalServerError };
+      throw new HttpError("Failed to update transaction", 500);
     }
-
-    return updatedRows ? { updated: true } : { updated: false };
   }
 
   static async deleteTransaction(transactionId) {
-    let removedRows;
     try {
-      removedRows = await connection("transactions")
+      const removedRows = await connection("transactions")
         .where({ id: transactionId })
         .delete();
+      return removedRows ? true : false;
     } catch (err) {
-      return { error: errorObject.internalServerError };
+      throw new HttpError("Failed to delete transaction", 500);
     }
-
-    return removedRows ? { deleted: true } : { deleted: false };
   }
 
   static async getTransactionsFromWallet(
@@ -89,9 +77,8 @@ export default class TransactionsModel {
     startDate = knex.raw("DATE_FORMAT(NOW(), '%Y-%m-01')"),
     endingDate = knex.raw("CURDATE()")
   ) {
-    let transactions;
     try {
-      transactions = await connection("transactions")
+      const transactions = await connection("transactions")
         .innerJoin("users", "transactions.user_id", "users.id")
         .innerJoin("wallets", "transactions.wallet_id", "wallets.id")
         .leftJoin("categories", "transactions.category_id", "categories.id")
@@ -108,10 +95,9 @@ export default class TransactionsModel {
           "wallets.name AS walletName",
           "categories.name AS categoryName"
         );
+      return transactions;
     } catch (err) {
-      return { error: errorObject.failedToFetchTransactions };
+      throw new HttpError("Failed to fetch transactions", 500);
     }
-
-    return { transactions };
   }
 }

@@ -1,121 +1,147 @@
 import TransactionsModel from "../models/TransactionsModel.js";
 import transactionMapper from "../utils/TransactionMapper.js";
+import HttpError from "../utils/HttpError.js";
 
 export default class TransactionsController {
-  static async createCategoryHandler(req, res) {
-    const { walletId } = req.params;
-    const { newCategory } = req.body;
+  static async createCategoryHandler(req, res, next) {
+    try {
+      const { walletId } = req.params;
+      const { newCategory } = req.body;
 
-    newCategory.wallet = walletId;
+      newCategory.wallet = walletId;
 
-    const { error, categoryId } = await TransactionsModel.createCategory(
-      newCategory
-    );
+      const categoryId = await TransactionsModel.createCategory(newCategory);
 
-    if (error) {
-      return res.status(error.status).json({ message: error.message });
+      if (!categoryId) {
+        throw new HttpError("Failed to create category", 500);
+      }
+
+      return res.status(201).json({ categoryId });
+    } catch (err) {
+      next(err);
     }
-
-    return res.status(200).json(categoryId);
   }
 
-  static async deleteCategoryHandler(req, res) {
-    const { categoryId } = req.body;
+  static async deleteCategoryHandler(req, res, next) {
+    try {
+      const { categoryId } = req.body;
 
-    const { error, deleted } = await TransactionsModel.deleteCategory(
-      categoryId
-    );
+      const deleted = await TransactionsModel.deleteCategory(categoryId);
 
-    if (error) {
-      return res.status(error.status).json({ message: error.message });
+      if (!deleted) {
+        throw new HttpError("Failed to delete category", 500);
+      }
+
+      return res.status(200).json({ message: "Category deleted successfully" });
+    } catch (err) {
+      next(err);
     }
-
-    return res.status(200).json(deleted);
   }
 
-  static async updateCategoryHandler(req, res) {
-    const { categoryId, updatedFields } = req.body;
+  static async updateCategoryHandler(req, res, next) {
+    try {
+      const { categoryId, updatedFields } = req.body;
 
-    const { error, updated } = await TransactionsModel.updateCategory(
-      categoryId,
-      updatedFields
-    );
+      const updated = await TransactionsModel.updateCategory(
+        categoryId,
+        updatedFields
+      );
 
-    if (error) {
-      return res.status(error.status).json({ message: error.message });
+      if (!updated) {
+        throw new HttpError("Failed to update category", 500);
+      }
+
+      return res.status(200).json({ message: "Category updated successfully" });
+    } catch (err) {
+      next(err);
     }
-
-    return res.status(200).json(updated);
   }
 
-  static async createTransactionHandler(req, res) {
-    const { user } = req;
-    const { walletId } = req.params;
-    const { newTransaction } = req.body;
+  static async createTransactionHandler(req, res, next) {
+    try {
+      const { user } = req;
+      const { walletId } = req.params;
+      const { newTransaction } = req.body;
 
-    newTransaction.walletId = walletId;
-    newTransaction.userId = user.id;
+      newTransaction.walletId = walletId;
+      newTransaction.userId = user.id;
 
-    const formattedNewTransaction = transactionMapper(newTransaction);
+      const formattedNewTransaction = transactionMapper(newTransaction);
 
-    const { error, transactionId } = await TransactionsModel.createTransaction(
-      formattedNewTransaction
-    );
+      const transactionId = await TransactionsModel.createTransaction(
+        formattedNewTransaction
+      );
 
-    if (error) {
-      return res.status(error.status).json({ message: error.message });
+      if (!transactionId) {
+        throw new HttpError("Failed to create transaction", 500);
+      }
+
+      return res.status(201).json({ transactionId });
+    } catch (err) {
+      next(err);
     }
-
-    return res.status(200).json(transactionId);
   }
 
-  static async deleteTransactionHandler(req, res) {
-    const { transactionId } = req.params;
+  static async deleteTransactionHandler(req, res, next) {
+    try {
+      const { transactionId } = req.params;
 
-    const { error, deleted } = await TransactionsModel.deleteTransaction(
-      transactionId
-    );
+      const deleted = await TransactionsModel.deleteTransaction(transactionId);
 
-    if (error) {
-      return res.status(error.status).json({ message: error.message });
+      if (!deleted) {
+        throw new HttpError("Failed to delete transaction", 500);
+      }
+
+      return res
+        .status(200)
+        .json({ message: "Transaction deleted successfully" });
+    } catch (err) {
+      next(err);
     }
-
-    return res.status(200).json(deleted);
   }
 
-  static async updateTransactionHandler(req, res) {
-    const { transactionId } = req.params;
-    const { updatedFields } = req.body;
+  static async updateTransactionHandler(req, res, next) {
+    try {
+      const { transactionId } = req.params;
+      const { updatedFields } = req.body;
 
-    const formattedEditTransaction = transactionMapper(updatedFields);
+      const formattedEditTransaction = transactionMapper(updatedFields);
 
-    const { error, updated } = await TransactionsModel.updateTransaction(
-      transactionId,
-      formattedEditTransaction
-    );
+      const updated = await TransactionsModel.updateTransaction(
+        transactionId,
+        formattedEditTransaction
+      );
 
-    if (error) {
-      return res.status(error.status).json({ message: error.message });
+      if (!updated) {
+        throw new HttpError("Failed to update transaction", 500);
+      }
+
+      return res
+        .status(200)
+        .json({ message: "Transaction updated successfully" });
+    } catch (err) {
+      next(err);
     }
-
-    return res.status(200).json(updated);
   }
 
-  static async getTransactionsPerWalletHandler(req, res) {
-    const { walletId } = req.params;
-    const { startDate, endDate } = req.query;
+  static async getTransactionsPerWalletHandler(req, res, next) {
+    try {
+      const { walletId } = req.params;
+      const { startDate, endDate } = req.query;
 
-    const { error, transactions } =
-      await TransactionsModel.getTransactionsFromWallet(
+      const transactions = await TransactionsModel.getTransactionsFromWallet(
         walletId,
         startDate,
         endDate
       );
 
-    if (error) {
-      return res.status(error.status).json({ message: error.message });
-    }
+      if (!transactions) {
+        throw new HttpError("Failed to fetch transactions", 500);
+      }
 
-    return res.status(200).json(transactions);
+      return res.status(200).json(transactions);
+    } catch (err) {
+      next(err);
+    }
   }
 }

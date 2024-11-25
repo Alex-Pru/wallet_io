@@ -1,82 +1,69 @@
 import { connection } from "../db/connection.js";
-import errorObject from "../utils/Errors.js";
+import HttpError from "../utils/HttpError.js";
 
 export default class UsersModel {
   static async getUserByGoogleId(googleId) {
-    let user;
     try {
-      user = await connection("users").where({ google_id: googleId }).first();
+      const user = await connection("users")
+        .where({ google_id: googleId })
+        .first();
+      return { user };
     } catch (err) {
-      return { error: errorObject.fetchUserFail };
+      throw new HttpError("Failed to fetch user by Google ID", 500);
     }
-    return { user };
   }
 
   static async getUserById(id) {
-    let user;
     try {
-      user = await connection("users").where({ id }).first();
+      const user = await connection("users").where({ id }).first();
+      return { user };
     } catch (err) {
-      return { error: errorObject.fetchUserFail };
+      throw new HttpError("Failed to fetch user by ID", 500);
     }
-
-    return { user };
   }
 
   static async insertNewUser(userObject) {
-    let userId;
     try {
-      userId = await connection("users").insert({
+      const userId = await connection("users").insert({
         google_id: userObject.googleId,
         name: userObject.name,
         email: userObject.email,
         updated_at: null,
       });
+      return userId;
     } catch (err) {
-      return { error: errorObject.internalServerError };
+      throw new HttpError("Failed to insert new user", 500);
     }
-    return { userId };
   }
 
   static async removeUser(userId) {
-    let result;
     try {
-      result = await connection("users").where({ id: userId }).delete();
+      const result = await connection("users").where({ id: userId }).delete();
+      return result ? true : false;
     } catch (err) {
-      switch (err.message) {
-        case "Failed to delete user":
-          return { error: errorObject.failedToDelete };
-          break;
-        default:
-          return { error: errorObject.internalServerError };
-          break;
-      }
+      throw new HttpError("Failed to remove user", 500);
     }
-    return result ? { deleted: true } : { deleted: false };
   }
 
   static async updateUser(userId, updatedFields) {
-    let updatedRows;
     try {
-      updatedRows = await connection("users")
+      const updatedRows = await connection("users")
         .where({ id: userId })
         .update(updatedFields);
+      return updatedRows ? true : false;
     } catch (err) {
-      return { error: errorObject.internalServerError };
+      throw new HttpError("Failed to update user", 500);
     }
-    return updatedRows ? { updated: true } : { updated: false };
   }
 
   static async getUsersByEmail(emails) {
-    let usersIDs;
     try {
-      usersIDs = await connection("users")
+      const usersIDs = await connection("users")
         .select("id")
         .whereIn("email", emails);
+      return usersIDs;
     } catch (err) {
-      return { error: errorObject.fetchUserFail };
+      throw new HttpError("Failed to fetch users by email", 500);
     }
-
-    return { usersIDs };
   }
 }

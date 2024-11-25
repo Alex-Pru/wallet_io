@@ -1,39 +1,40 @@
 import express from "express";
-import errorObject from "../utils/Errors.js";
+import WalletsModel from "../models/WalletsModel.js";
 
 const roleAuthorizationMiddleware = (requiredRole) => {
   return async (req, res, next) => {
     const { user } = req;
     const { walletId } = req.params;
 
-    const { error: userRoleError, role } = await WalletsModel.getUserWalletRole(
-      user.id,
-      walletId
-    );
+    try {
+      // Obtém o papel do usuário na carteira
+      const role = await WalletsModel.getUserWalletRole(user.id, walletId);
 
-    if (userRoleError) {
-      return res
-        .status(userRoleError.status)
-        .json({ message: userRoleError.message });
+      // Verifica se a função retornou uma role válida
+      const rolesHierarchy = ["viewer", "participant", "owner"];
+      const userRoleIndex = rolesHierarchy.indexOf(role);
+      const requiredRoleIndex = rolesHierarchy.indexOf(requiredRole);
+
+      if (userRoleIndex === -1 || requiredRoleIndex === -1) {
+        const error = new HttpError(
+          "Invalid role in request or user role.",
+          403
+        );
+        throw error;
+      }
+
+      // Verifica se o papel do usuário é suficiente para a ação requisitada
+      if (userRoleIndex < requiredRoleIndex) {
+        const error = new HttpError("Role not authorized to action", 403);
+        throw error;
+      }
+
+      // Role autorizada, passa para o próximo middleware ou rota
+      next();
+    } catch (err) {
+      // Encaminha o erro para o middleware global de erros
+      next(err);
     }
-
-    const rolesHierarchy = ["viewer", "participant", "owner"];
-    const userRoleIndex = rolesHierarchy.indexOf(role);
-    const requiredRoleIndex = rolesHierarchy.indexOf(requiredRole);
-
-    if (userRoleIndex === -1 || requiredRoleIndex === -1) {
-      return res
-        .status(errorObject.unauthorizedRole.status)
-        .json({ message: "Invalid role in request or user role." });
-    }
-
-    if (userRoleIndex < requiredRoleIndex) {
-      return res
-        .status(errorObject.unauthorizedRole.status)
-        .json({ message: errorObject.unauthorizedRole.message });
-    }
-
-    next();
   };
 };
 

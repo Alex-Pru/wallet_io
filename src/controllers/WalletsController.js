@@ -1,138 +1,146 @@
 import WalletsModel from "../models/WalletsModel.js";
+import HttpError from "../utils/HttpError.js";
 
 export default class WalletsController {
-  static async createWalletHandler(req, res) {
-    const { user, body } = req;
+  static async createWalletHandler(req, res, next) {
+    try {
+      const { user } = req;
+      const { newWallet } = req.body;
 
-    const { error: createWalletError, walletId } =
-      await WalletsModel.createWallet(body);
+      const walletId = await WalletsModel.createWallet(newWallet);
 
-    if (createWalletError) {
-      return res
-        .status(createWalletError.status)
-        .json({ message: createWalletError.message });
-    }
+      if (!walletId) {
+        throw new HttpError("Failed to create wallet", 500);
+      }
 
-    const { error: relateUserToWalletError } =
       await WalletsModel.addUserToWallet({
         userId: user.id,
         walletId: walletId[0],
         role: "owner",
       });
 
-    if (relateUserToWalletError) {
+      return res.status(201).json({ message: "Wallet created successfully" });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async getWalletsByUserHandler(req, res, next) {
+    try {
+      const { user } = req;
+
+      const { wallets } = await WalletsModel.getWalletsByUserId(user.id);
+
+      return res.status(200).json(wallets);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async removeWalletHandler(req, res, next) {
+    try {
+      const { walletId } = req.params;
+
+      const removed = await WalletsModel.removeWallet(walletId);
+
+      if (!removed) {
+        throw new HttpError("Failed to remove wallet", 500);
+      }
+
+      return res.status(200).json({ message: "Wallet removed successfully" });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async addUserToWalletHandler(req, res, next) {
+    try {
+      const { newUser } = req.body;
+      const { walletId } = req.params;
+
+      const addedUser = await WalletsModel.addUserToWallet(newUser, walletId);
+
+      if (!addedUser) {
+        throw new HttpError("Failed to add user to wallet", 500);
+      }
+
       return res
-        .status(relateUserToWalletError.status)
-        .json({ message: relateUserToWalletError.message });
+        .status(200)
+        .json({ message: "User added to wallet successfully" });
+    } catch (err) {
+      next(err);
     }
-
-    return res.status(201).json("Wallet created successfully");
   }
 
-  static async getWalletsByUserHandler(req, res) {
-    const { user } = req;
+  static async removeUserFromWalletHandler(req, res, next) {
+    try {
+      const { walletId } = req.params;
+      const { id: userId } = req.query;
 
-    const { error, wallets } = await WalletsModel.getWalletsByUserId(user.id);
+      const removed = await WalletsModel.removeUserFromWallet(userId, walletId);
 
-    if (error) {
-      return res.status(error.status).json({ message: error.message });
-    }
+      if (!removed) {
+        throw new HttpError("Failed to remove user from wallet", 500);
+      }
 
-    return res.status(200).json(wallets);
-  }
-
-  static async removeWalletHandler(req, res) {
-    const { walletId } = req.params;
-
-    const { error: walletRemoveError, removed } =
-      await WalletsModel.removeWallet(walletId);
-
-    if (walletRemoveError) {
       return res
-        .status(walletRemoveError.status)
-        .json({ message: walletRemoveError.message });
+        .status(200)
+        .json({ message: "User removed from wallet successfully" });
+    } catch (err) {
+      next(err);
     }
-
-    return res.status(200).json(removed);
   }
 
-  static async addUserToWalletHandler(req, res) {
-    const { newUser } = req.body;
-    const { walletId } = req.params;
+  static async updateUserWalletRelationHandler(req, res, next) {
+    try {
+      const { walletId } = req.params;
+      const { id: userId } = req.query;
+      const { role } = req.body;
 
-    const { error: relateUserWalletError, addedUser } =
-      await WalletsModel.addUserToWallet(newUser, walletId);
+      const updated = await WalletsModel.updateUserWalletRelation(
+        userId,
+        walletId,
+        role
+      );
 
-    if (relateUserWalletError) {
+      if (!updated) {
+        throw new HttpError("Failed to update user-wallet relation", 500);
+      }
+
       return res
-        .status(relateUserWalletError.status)
-        .json({ message: relateUserWalletError.message });
+        .status(200)
+        .json({ message: "User-wallet relation updated successfully" });
+    } catch (err) {
+      next(err);
     }
-
-    return res.status(200).json(addedUser);
   }
 
-  static async removeUserFromWalletHandler(req, res) {
-    const { walletId } = req.params;
-    const { id: userId } = req.query;
+  static async updateWalletHandler(req, res, next) {
+    try {
+      const { walletId } = req.params;
+      const { updatedFields } = req.body;
 
-    const { error, removed } = await WalletsModel.removeUserFromWallet(
-      userId,
-      walletId
-    );
+      const updated = await WalletsModel.updateWallet(walletId, updatedFields);
 
-    if (error) {
-      return res.status(error.status).json({ message: error.message });
+      if (!updated) {
+        throw new HttpError("Failed to update wallet", 500);
+      }
+
+      return res.status(200).json({ message: "Wallet updated successfully" });
+    } catch (err) {
+      next(err);
     }
-
-    return res.status(200).json(removed);
   }
 
-  static async updateUserWalletRelationHandler(req, res) {
-    const { walletId } = req.params;
-    const { id: userId } = req.query;
-    const { role } = req.body;
+  static async getWalletDetailsHandler(req, res, next) {
+    try {
+      const { walletId } = req.params;
 
-    const { error, updated } = await WalletsModel.updateUserWalletRelation(
-      userId,
-      walletId,
-      role
-    );
+      const walletDetails = await WalletsModel.getWalletDetails(walletId);
 
-    if (error) {
-      return res.status(error.status).json({ message: error.message });
+      return res.status(200).json(walletDetails);
+    } catch (err) {
+      next(err);
     }
-
-    return res.status(200).json(updated);
-  }
-
-  static async updateWalletHandler(req, res) {
-    const { walletId } = req.params;
-    const { updatedFields } = req.body;
-
-    const { error, updated } = await WalletsModel.updateWallet(
-      walletId,
-      updatedFields
-    );
-
-    if (error) {
-      return res.status(error.status).json({ message: error.message });
-    }
-
-    return res.status(200).json(updated);
-  }
-
-  static async getWalletDetailsHandler(req, res) {
-    const { walletId } = req.params;
-
-    const { error, walletDetails } = await WalletsModel.getWalletDetails(
-      walletId
-    );
-
-    if (error) {
-      return res.status(error.status).json({ message: error.message });
-    }
-
-    return res.status(200).json(walletDetails);
   }
 }

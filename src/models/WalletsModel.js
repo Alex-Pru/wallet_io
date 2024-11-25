@@ -1,141 +1,125 @@
 import { connection } from "../db/connection.js";
-import errorObject from "../utils/Errors.js";
+import HttpError from "../utils/HttpError.js";
 
 export default class WalletsModel {
   static async createWallet(newWallet) {
-    let walletId;
     try {
-      walletId = await connection("wallets").insert({
+      const walletId = await connection("wallets").insert({
         name: newWallet.name,
         description: newWallet.description,
         update_at: null,
       });
+      return walletId;
     } catch (err) {
-      return { error: errorObject.internalServerError };
+      throw new HttpError("Failed to create wallet", 500);
     }
-
-    return { walletId };
   }
 
   static async getWalletsByUserId(userId) {
-    let wallets;
     try {
-      wallets = await connection("wallet_users")
+      const wallets = await connection("wallet_users")
         .join("wallets", "wallet_users.wallet_id", "=", "wallets.id")
         .where("wallet_users.user_id", userId)
         .select("wallets.*, wallet_users.role");
+      return wallets;
     } catch (err) {
-      return { error: errorObject.internalServerError };
+      throw new HttpError("Failed to fetch wallets by user ID", 500);
     }
-
-    return { wallets };
   }
 
   static async removeWallet(walletId) {
-    let removed;
     try {
-      removed = await connection("wallets").where({ id: walletId }).delete();
+      const removed = await connection("wallets")
+        .where({ id: walletId })
+        .delete();
+      return removed ? true : false;
     } catch (err) {
-      return { error: errorObject.internalServerError };
+      throw new HttpError("Failed to remove wallet", 500);
     }
-
-    return removed ? { removed: true } : { removed: false };
   }
 
   static async getAllUsersByWallet(walletId) {
-    let usersList;
     try {
-      usersList = await connection("wallet_users")
+      const usersList = await connection("wallet_users")
         .join("users", "wallet_users.user_id", "=", "users.id")
         .where("wallet_users.wallet_id", walletId)
         .select(
           "users.name, users.email, wallet_users.added_at, wallet_users.role"
         );
+      return usersList;
     } catch (err) {
-      return { error: errorObject.fetchUserFail };
+      throw new HttpError("Failed to fetch users by wallet", 500);
     }
-
-    return { usersList };
   }
 
   static async updateWallet(walletId, updatedFields) {
-    let updatedRows;
     try {
-      updatedRows = await connection("wallets")
+      const updatedRows = await connection("wallets")
         .where({ id: walletId })
         .update(updatedFields);
+      return updatedRows ? true : false;
     } catch (err) {
-      return { error: errorObject.internalServerError };
+      throw new HttpError("Failed to update wallet", 500);
     }
-
-    return updatedRows ? { updated: true } : { updated: false };
   }
 
   static async addUserToWallet(newUser, walletId) {
-    let relationCreated;
     try {
-      relationCreated = await connection("wallet_users").insert({
+      const relationCreated = await connection("wallet_users").insert({
         wallet_id: walletId,
         user_id: newUser.id,
         role: newUser.role,
       });
+
+      if (!relationCreated[0]) {
+        throw new HttpError("Failed to add user to wallet", 400);
+      }
+
+      return true;
     } catch (err) {
-      return;
+      throw new HttpError("Failed to add user to wallet", 500);
     }
-
-    if (!relationCreated[0]) {
-      return { error: errorObject.failedToAddUser };
-    }
-
-    return relationCreated ? { addedUser: true } : { addedUser: false };
   }
 
   static async removeUserFromWallet(userId, walletId) {
-    let removedRows;
     try {
-      removedRows = await connection("wallet_users")
+      const removedRows = await connection("wallet_users")
         .where({ user_id: userId, wallet_id: walletId })
         .delete();
+      return removedRows ? true : false;
     } catch (err) {
-      return { error: errorObject.failedToRemoveUser };
+      throw new HttpError("Failed to remove user from wallet", 500);
     }
-
-    return removedRows ? { removed: true } : { removed: false };
   }
 
   static async updateUserWalletRelation(userId, walletId, role) {
-    let updatedRows;
     try {
-      updatedRows = await connection("wallet_users")
+      const updatedRows = await connection("wallet_users")
         .where({
           user_id: userId,
           wallet_id: walletId,
         })
         .update({ role });
+      return updatedRows ? true : false;
     } catch (err) {
-      return { error: errorObject.failedToUpdateUserWalletRelation };
+      throw new HttpError("Failed to update user-wallet relation", 500);
     }
-
-    return updatedRows ? { updated: true } : { updated: false };
   }
 
   static async getUserWalletRole(userId, walletId) {
-    let role;
     try {
-      role = await connection("wallet_users")
+      const role = await connection("wallet_users")
         .where({ user_id: userId, wallet_id: walletId })
         .select("role");
+      return role;
     } catch (err) {
-      return { error: errorObject.internalServerError };
+      throw new HttpError("Failed to fetch user wallet role", 500);
     }
-
-    return { role };
   }
 
   static async getWalletDetails(walletId) {
-    let walletDetails;
     try {
-      walletDetails = await connection("transactions")
+      const walletDetails = await connection("transactions")
         .where({ wallet_id: walletId })
         .whereBetween("date", [
           knex.raw("DATE_FORMAT(NOW(), '%Y-%m-01')"),
@@ -149,10 +133,9 @@ export default class WalletsModel {
             'SUM(CASE WHEN type = "expense" THEN amount ELSE 0 END) AS totalExpenses'
           )
         );
+      return walletDetails;
     } catch (err) {
-      return { error: errorObject.failedToFetchWalletDetails };
+      throw new HttpError("Failed to fetch wallet details", 500);
     }
-
-    return { walletDetails };
   }
 }

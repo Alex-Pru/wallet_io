@@ -1,30 +1,52 @@
 import express from "express";
 import UsersModel from "../models/UsersModel.js";
+import HttpError from "../utils/HttpError.js";
 
 export default class UsersController {
-  static async userUpdateHandler(req, res) {
-    const { updateFields, user } = req;
+  static async userUpdateHandler(req, res, next) {
+    try {
+      const { user } = req;
+      const { updateFields } = req.body;
 
-    const { error, updated } = await UsersModel.updateUser(
-      user.id,
-      updateFields
-    );
+      // Validação básica
+      if (!user.id) {
+        throw new HttpError("User ID is required", 400);
+      }
 
-    if (error) {
-      return res.status(error.status).json({ message: error.message });
+      if (!updateFields || Object.keys(updateFields).length === 0) {
+        throw new HttpError("Update fields are required", 400);
+      }
+
+      const updated = await UsersModel.updateUser(user.id, updateFields);
+
+      if (!updated) {
+        throw new HttpError("Failed to update user", 500);
+      }
+
+      return res.status(200).json({ message: "User updated successfully" });
+    } catch (err) {
+      next(err);
     }
-
-    return res.status(200).json("Updated User successfully");
   }
 
-  static async deleteUserHandler(req, res) {
-    const { user } = req;
-    const { error, deleted } = await UsersModel.removeUser(user.id);
+  static async deleteUserHandler(req, res, next) {
+    try {
+      const { user } = req;
 
-    if (error) {
-      return res.status(error.status).json({ message: error.message });
+      // Validação básica
+      if (!user.id) {
+        throw new HttpError("User ID is required", 400);
+      }
+
+      const deleted = await UsersModel.removeUser(user.id);
+
+      if (!deleted) {
+        throw new HttpError("Failed to delete user", 500);
+      }
+
+      return res.status(200).json({ message: "User deleted successfully" });
+    } catch (err) {
+      next(err);
     }
-
-    return res.status(200).json("User deleted successfully");
   }
 }

@@ -9,6 +9,7 @@ router.get(
   "/redirect",
   passport.authenticate("google", {
     successRedirect: "http://localhost:3000/home",
+    failureRedirect: "http://localhost:3000/login?event=error",
   })
 );
 
