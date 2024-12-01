@@ -78,6 +78,19 @@ export default class TransactionsModel {
     }
   }
 
+  static async getTransactionById(transactionId) {
+    try {
+      const newTransaction = await connection("transactions")
+        .where({ id: transactionId })
+        .first();
+
+      return newTransaction;
+    } catch (err) {
+      console.log(err);
+      throw new HttpError("Failed to fetch transaction", 500);
+    }
+  }
+
   static async getTransactionsFromWallet(
     walletId,
     startDate = knex.raw("DATE_FORMAT(NOW(), '%Y-%m-01')"),

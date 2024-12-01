@@ -76,7 +76,11 @@ export default class TransactionsController {
         throw new HttpError("Failed to create transaction", 500);
       }
 
-      return res.status(201).json({ transactionId });
+      const transaction = await TransactionsModel.getTransactionById(
+        transactionId[0]
+      );
+
+      return res.status(201).json(transaction);
     } catch (err) {
       next(err);
     }
