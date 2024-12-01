@@ -7,8 +7,9 @@ export default class UsersModel {
       const user = await connection("users")
         .where({ google_id: googleId })
         .first();
-      return { user };
+      return user;
     } catch (err) {
+      console.log(err);
       throw new HttpError("Failed to fetch user by Google ID", 500);
     }
   }
@@ -16,8 +17,9 @@ export default class UsersModel {
   static async getUserById(id) {
     try {
       const user = await connection("users").where({ id }).first();
-      return { user };
+      return user;
     } catch (err) {
+      console.log(err);
       throw new HttpError("Failed to fetch user by ID", 500);
     }
   }
@@ -32,6 +34,7 @@ export default class UsersModel {
       });
       return userId;
     } catch (err) {
+      console.log(err);
       throw new HttpError("Failed to insert new user", 500);
     }
   }
@@ -41,6 +44,7 @@ export default class UsersModel {
       const result = await connection("users").where({ id: userId }).delete();
       return result ? true : false;
     } catch (err) {
+      console.log(err);
       throw new HttpError("Failed to remove user", 500);
     }
   }
@@ -52,6 +56,7 @@ export default class UsersModel {
         .update(updatedFields);
       return updatedRows ? true : false;
     } catch (err) {
+      console.log(err);
       throw new HttpError("Failed to update user", 500);
     }
   }
@@ -63,6 +68,7 @@ export default class UsersModel {
         .whereIn("email", emails);
       return usersIDs;
     } catch (err) {
+      console.log(err);
       throw new HttpError("Failed to fetch users by email", 500);
     }
   }

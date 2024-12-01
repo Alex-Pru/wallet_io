@@ -19,7 +19,9 @@ export default class WalletsController {
         role: "owner",
       });
 
-      return res.status(201).json({ message: "Wallet created successfully" });
+      const createdWallet = await WalletsModel.getWalletById(walletId[0]);
+
+      return res.status(201).json(createdWallet);
     } catch (err) {
       next(err);
     }
@@ -29,7 +31,7 @@ export default class WalletsController {
     try {
       const { user } = req;
 
-      const { wallets } = await WalletsModel.getWalletsByUserId(user.id);
+      const wallets = await WalletsModel.getWalletsByUserId(user.id);
 
       return res.status(200).json(wallets);
     } catch (err) {

@@ -19,8 +19,9 @@ const PORT = process.env.PORT || 4000;
 
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN,
-    credentials: true,
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST", "PUT", "DELETE"], // Métodos permitidos
+    credentials: true, // Permitir cookies, se necessário
   })
 );
 
@@ -33,7 +34,10 @@ app.use(
     resave: true,
     store: sessionStore,
     cookie: {
-      maxAge: 60000 * 10,
+      maxAge: 60000 * 30, // Duração de 10 minutos
+      httpOnly: true, // Impede o acesso via JavaScript
+      secure: process.env.NODE_ENV === "production", // Apenas em HTTPS
+      sameSite: "lax", // Configuração recomendada para evitar problemas de CORS
     },
   })
 );

@@ -12,6 +12,7 @@ export default class TransactionsModel {
       });
       return categoryId;
     } catch (err) {
+      console.log(err);
       throw new HttpError("Failed to create category", 500);
     }
   }
@@ -23,6 +24,7 @@ export default class TransactionsModel {
         .delete();
       return removedRows ? true : false;
     } catch (err) {
+      console.log(err);
       throw new HttpError("Failed to delete category", 500);
     }
   }
@@ -34,6 +36,7 @@ export default class TransactionsModel {
         .update(updatedFields);
       return updatedRows ? true : false;
     } catch (err) {
+      console.log(err);
       throw new HttpError("Failed to update category", 500);
     }
   }
@@ -46,6 +49,7 @@ export default class TransactionsModel {
       );
       return transactionId;
     } catch (err) {
+      console.log(err);
       throw new HttpError("Failed to create transaction", 500);
     }
   }
@@ -57,6 +61,7 @@ export default class TransactionsModel {
         .update(updatedFields);
       return updatedRows ? true : false;
     } catch (err) {
+      console.log(err);
       throw new HttpError("Failed to update transaction", 500);
     }
   }
@@ -68,6 +73,7 @@ export default class TransactionsModel {
         .delete();
       return removedRows ? true : false;
     } catch (err) {
+      console.log(err);
       throw new HttpError("Failed to delete transaction", 500);
     }
   }
@@ -97,6 +103,7 @@ export default class TransactionsModel {
         );
       return transactions;
     } catch (err) {
+      console.log(err);
       throw new HttpError("Failed to fetch transactions", 500);
     }
   }

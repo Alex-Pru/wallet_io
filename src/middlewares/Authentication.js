@@ -1,3 +1,5 @@
+import HttpError from "../utils/HttpError.js";
+
 export function isAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
     return next();

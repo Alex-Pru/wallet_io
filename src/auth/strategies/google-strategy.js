@@ -1,4 +1,5 @@
 import passport from "passport";
+import HttpError from "../../utils/HttpError.js";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import * as dotenv from "dotenv";
 import UsersModel from "../../models/UsersModel.js";
@@ -10,13 +11,14 @@ passport.serializeUser((user, done) => {
 });
 
 passport.deserializeUser(async (id, done) => {
-  const { error: searchError, user } = await UsersModel.getUserById(id);
+  try {
+    const user = await UsersModel.getUserById(id);
 
-  if (searchError) {
-    return done(new Error(searchError.message), null);
+    return user ? done(null, user) : done(null, null);
+  } catch (err) {
+    const error = new HttpError("Failed to fetch user", 500);
+    return done(error, null);
   }
-
-  return user ? done(null, user) : done(null, null);
 });
 
 export default passport.use(
@@ -28,12 +30,14 @@ export default passport.use(
       scope: ["profile", "email"],
     },
     async (accessToken, refreshToken, profile, done) => {
-      let { error: searchError, user } = await UsersModel.getUserByGoogleId(
-        profile.id
-      );
+      let user;
 
-      if (searchError) {
-        return done(new Error(searchError.message), null);
+      try {
+        user = await UsersModel.getUserByGoogleId(profile.id);
+      } catch (err) {
+        console.log(err);
+        const error = new HttpError("Failed to fetch user", 500);
+        return done(error, null);
       }
 
       if (!user) {
@@ -43,23 +47,21 @@ export default passport.use(
           email: profile.emails[0].value,
         };
 
-        let { error: insertError, userId } = await UsersModel.insertNewUser(
-          newUser
-        );
+        let userId;
 
-        if (insertError) {
-          return done(new Error(insertError.message), null);
+        try {
+          userId = await UsersModel.insertNewUser(newUser);
+        } catch (err) {
+          const error = new HttpError("Failed to register user", 500);
+          return done(error, null);
         }
 
-        let { error: searchError, user } = await UsersModel.getUserById(
-          userId[0]
-        );
-
-        if (searchError) {
-          return done(new Error(searchError.message), false);
+        try {
+          user = await UsersModel.getUserById(userId[0]).user;
+        } catch (err) {
+          const error = new HttpError("Failed to fetch user", 500);
+          return done(error, null);
         }
-
-        return done(null, user);
       }
 
       return done(null, user);

@@ -11,7 +11,20 @@ export default class WalletsModel {
       });
       return walletId;
     } catch (err) {
+      console.log(err);
       throw new HttpError("Failed to create wallet", 500);
+    }
+  }
+
+  static async getWalletById(walletId) {
+    try {
+      const wallet = await connection("wallets")
+        .where({ id: walletId })
+        .first();
+
+      return wallet;
+    } catch (err) {
+      throw new HttpError("Failed to fetch wallet", 500);
     }
   }
 
@@ -20,10 +33,18 @@ export default class WalletsModel {
       const wallets = await connection("wallet_users")
         .join("wallets", "wallet_users.wallet_id", "=", "wallets.id")
         .where("wallet_users.user_id", userId)
-        .select("wallets.*, wallet_users.role");
-      return wallets;
+        .select(
+          "wallets.id",
+          "wallets.name",
+          "wallets.description",
+          "wallets.created_at",
+          "wallets.updated_at",
+          "wallet_users.role"
+        );
+      return wallets ? wallets : [];
     } catch (err) {
-      throw new HttpError("Failed to fetch wallets by user ID", 500);
+      console.log(err);
+      throw new HttpError("Failed to fetch wallets by user", 500);
     }
   }
 
@@ -34,6 +55,7 @@ export default class WalletsModel {
         .delete();
       return removed ? true : false;
     } catch (err) {
+      console.log(err);
       throw new HttpError("Failed to remove wallet", 500);
     }
   }
@@ -44,10 +66,14 @@ export default class WalletsModel {
         .join("users", "wallet_users.user_id", "=", "users.id")
         .where("wallet_users.wallet_id", walletId)
         .select(
-          "users.name, users.email, wallet_users.added_at, wallet_users.role"
+          "users.name",
+          "users.email",
+          "wallet_users.added_at",
+          "wallet_users.role"
         );
       return usersList;
     } catch (err) {
+      console.log(err);
       throw new HttpError("Failed to fetch users by wallet", 500);
     }
   }
@@ -59,6 +85,7 @@ export default class WalletsModel {
         .update(updatedFields);
       return updatedRows ? true : false;
     } catch (err) {
+      console.log(err);
       throw new HttpError("Failed to update wallet", 500);
     }
   }
@@ -72,11 +99,13 @@ export default class WalletsModel {
       });
 
       if (!relationCreated[0]) {
+        console.log(err);
         throw new HttpError("Failed to add user to wallet", 400);
       }
 
       return true;
     } catch (err) {
+      console.log(err);
       throw new HttpError("Failed to add user to wallet", 500);
     }
   }
@@ -88,6 +117,7 @@ export default class WalletsModel {
         .delete();
       return removedRows ? true : false;
     } catch (err) {
+      console.log(err);
       throw new HttpError("Failed to remove user from wallet", 500);
     }
   }
@@ -102,6 +132,7 @@ export default class WalletsModel {
         .update({ role });
       return updatedRows ? true : false;
     } catch (err) {
+      console.log(err);
       throw new HttpError("Failed to update user-wallet relation", 500);
     }
   }
@@ -113,6 +144,7 @@ export default class WalletsModel {
         .select("role");
       return role;
     } catch (err) {
+      console.log(err);
       throw new HttpError("Failed to fetch user wallet role", 500);
     }
   }
@@ -135,6 +167,7 @@ export default class WalletsModel {
         );
       return walletDetails;
     } catch (err) {
+      console.log(err);
       throw new HttpError("Failed to fetch wallet details", 500);
     }
   }
