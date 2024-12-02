@@ -3,11 +3,13 @@ import HttpError from "../utils/HttpError.js";
 
 export default class WalletsModel {
   static async createWallet(newWallet) {
+    const today = new Date().toISOString().slice(0, 10);
     try {
       const walletId = await connection("wallets").insert({
         name: newWallet.name,
         description: newWallet.description,
-        update_at: null,
+        created_at: today,
+        updated_at: null,
       });
       return walletId;
     } catch (err) {
@@ -22,8 +24,13 @@ export default class WalletsModel {
         .where({ id: walletId })
         .first();
 
+      wallet.created_at = wallet.created_at.toISOString().split("T")[0];
+      wallet.updated_at = wallet.updated_at
+        ? wallet.updated_at.toISOString().split("T")[0]
+        : null;
       return wallet;
     } catch (err) {
+      console.log(err);
       throw new HttpError("Failed to fetch wallet", 500);
     }
   }
@@ -79,6 +86,8 @@ export default class WalletsModel {
   }
 
   static async updateWallet(walletId, updatedFields) {
+    const today = new Date().toISOString().slice(0, 10);
+    updatedFields.updated_at = today;
     try {
       const updatedRows = await connection("wallets")
         .where({ id: walletId })
@@ -98,8 +107,11 @@ export default class WalletsModel {
         role: newUser.role,
       });
 
-      if (!relationCreated[0]) {
-        console.log(err);
+      if (
+        relationCreated[0] === false ||
+        relationCreated[0] === null ||
+        relationCreated[0] === undefined
+      ) {
         throw new HttpError("Failed to add user to wallet", 400);
       }
 
@@ -141,7 +153,7 @@ export default class WalletsModel {
     try {
       const role = await connection("wallet_users")
         .where({ user_id: userId, wallet_id: walletId })
-        .select("role");
+        .first("role");
       return role;
     } catch (err) {
       console.log(err);

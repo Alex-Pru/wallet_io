@@ -1,5 +1,6 @@
 import express from "express";
 import WalletsModel from "../models/WalletsModel.js";
+import HttpError from "../utils/HttpError.js";
 
 const roleAuthorizationMiddleware = (requiredRole) => {
   return async (req, res, next) => {
@@ -8,7 +9,7 @@ const roleAuthorizationMiddleware = (requiredRole) => {
 
     try {
       // Obtém o papel do usuário na carteira
-      const role = await WalletsModel.getUserWalletRole(user.id, walletId);
+      const { role } = await WalletsModel.getUserWalletRole(user.id, walletId);
 
       // Verifica se a função retornou uma role válida
       const rolesHierarchy = ["viewer", "participant", "owner"];

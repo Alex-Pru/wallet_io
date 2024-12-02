@@ -13,13 +13,11 @@ export default class WalletsController {
         throw new HttpError("Failed to create wallet", 500);
       }
 
-      await WalletsModel.addUserToWallet({
-        userId: user.id,
-        walletId: walletId[0],
-        role: "owner",
-      });
+      await WalletsModel.addUserToWallet({ ...user, role: "owner" }, walletId);
 
       const createdWallet = await WalletsModel.getWalletById(walletId[0]);
+
+      console.log(typeof createdWallet.created_at);
 
       return res.status(201).json(createdWallet);
     } catch (err) {
@@ -128,7 +126,9 @@ export default class WalletsController {
         throw new HttpError("Failed to update wallet", 500);
       }
 
-      return res.status(200).json({ message: "Wallet updated successfully" });
+      const changedWallet = await WalletsModel.getWalletById(walletId);
+
+      return res.status(200).json(changedWallet);
     } catch (err) {
       next(err);
     }
