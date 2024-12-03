@@ -85,6 +85,19 @@ export default class WalletsModel {
     }
   }
 
+  static async getNumberOfUsersByWallet(walletId) {
+    try {
+      const numberOfUser = await connection("wallet_users")
+        .where("wallet_users.wallet_id", walletId)
+        .count("* as usersNumber");
+
+      return Number(numberOfUser[0].usersNumber);
+    } catch (err) {
+      console.log(err);
+      throw new HttpError("Failed to fetch the number of users", 500);
+    }
+  }
+
   static async updateWallet(walletId, updatedFields) {
     const today = new Date().toISOString().slice(0, 10);
     updatedFields.updated_at = today;

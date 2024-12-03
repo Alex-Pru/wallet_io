@@ -17,8 +17,6 @@ export default class WalletsController {
 
       const createdWallet = await WalletsModel.getWalletById(walletId[0]);
 
-      console.log(typeof createdWallet.created_at);
-
       return res.status(201).json(createdWallet);
     } catch (err) {
       next(err);
@@ -77,7 +75,49 @@ export default class WalletsController {
       const { walletId } = req.params;
       const { id: userId } = req.query;
 
+      if (!userId) {
+        throw new HttpError("An user id must be provided", 400);
+      }
+
       const removed = await WalletsModel.removeUserFromWallet(userId, walletId);
+
+      const usersFromWallet = await WalletsModel.getNumberOfUsersByWallet(
+        walletId
+      );
+
+      if (usersFromWallet === 0) {
+        await WalletsModel.removeWallet(walletId);
+      }
+
+      if (!removed) {
+        throw new HttpError("Failed to remove user from wallet", 500);
+      }
+
+      return res
+        .status(200)
+        .json({ message: "User removed from wallet successfully" });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async userLeaveWalletHandler(req, res, next) {
+    try {
+      const { walletId } = req.params;
+      const { user } = req;
+
+      const removed = await WalletsModel.removeUserFromWallet(
+        user.id,
+        walletId
+      );
+
+      const usersFromWallet = await WalletsModel.getNumberOfUsersByWallet(
+        walletId
+      );
+
+      if (usersFromWallet === 0) {
+        await WalletsModel.removeWallet(walletId);
+      }
 
       if (!removed) {
         throw new HttpError("Failed to remove user from wallet", 500);

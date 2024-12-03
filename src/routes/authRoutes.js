@@ -1,9 +1,10 @@
 import express from "express";
 import passport from "passport";
+import redirectIfAuthenticated from "../middlewares/RedirectIfAuthenticated.js";
 
 const router = express.Router();
 
-router.get("/auth", passport.authenticate("google"));
+router.get("/auth", redirectIfAuthenticated, passport.authenticate("google"));
 
 router.get(
   "/redirect",

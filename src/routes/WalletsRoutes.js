@@ -43,5 +43,11 @@ router.delete(
   roleAuthorizationMiddleware("owner"),
   WalletsController.removeUserFromWalletHandler
 );
+router.delete(
+  "/:walletId/leaveWallet",
+  isAuthenticated,
+  roleAuthorizationMiddleware("viewer"),
+  WalletsController.userLeaveWalletHandler
+);
 
 export default router;
