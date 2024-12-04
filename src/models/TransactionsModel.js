@@ -93,15 +93,15 @@ export default class TransactionsModel {
 
   static async getTransactionsFromWallet(
     walletId,
-    startDate = knex.raw("DATE_FORMAT(NOW(), '%Y-%m-01')"),
-    endingDate = knex.raw("CURDATE()")
+    startDate = connection.raw("DATE_FORMAT(NOW(), '%Y-%m-01')"),
+    endingDate = connection.raw("CURDATE()")
   ) {
     try {
       const transactions = await connection("transactions")
         .innerJoin("users", "transactions.user_id", "users.id")
         .innerJoin("wallets", "transactions.wallet_id", "wallets.id")
         .leftJoin("categories", "transactions.category_id", "categories.id")
-        .where({ wallet_id: walletId })
+        .where("transactions.wallet_id", walletId)
         .whereBetween("date", [startDate, endingDate])
         .select(
           "transactions.type",

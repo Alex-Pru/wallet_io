@@ -20,7 +20,7 @@ router.post(
 router.get(
   "/:walletId",
   isAuthenticated,
-  roleAuthorizationMiddleware("participant"),
+  roleAuthorizationMiddleware("viewer"),
   TransactionsController.getTransactionsPerWalletHandler
 );
 router.put(
