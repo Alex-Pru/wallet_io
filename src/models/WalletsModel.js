@@ -135,6 +135,20 @@ export default class WalletsModel {
     }
   }
 
+  static async removeMultipleWallets(walletsIdList) {
+    if (walletsIdList === 0) return true;
+    try {
+      const removedRows = await connection("wallets")
+        .whereIn("id", walletsIdList)
+        .delete();
+
+      return walletsIdList.length === removedRows;
+    } catch (err) {
+      console.log(err);
+      throw new HttpError("Failed to remove multiple wallets", 500);
+    }
+  }
+
   static async removeUserFromWallet(userId, walletId) {
     try {
       const removedRows = await connection("wallet_users")
