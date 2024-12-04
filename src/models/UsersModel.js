@@ -53,7 +53,7 @@ export default class UsersModel {
     try {
       const updatedRows = await connection("users")
         .where({ id: userId })
-        .update(updatedFields);
+        .update({ ...updatedFields, updated_at: connection.fn.now() });
       return updatedRows ? true : false;
     } catch (err) {
       console.log(err);

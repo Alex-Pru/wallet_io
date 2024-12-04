@@ -176,23 +176,33 @@ export default class WalletsModel {
 
   static async getWalletDetails(walletId) {
     try {
-      const walletDetails = await connection("transactions")
-        .where({ wallet_id: walletId })
-        .whereBetween("date", [
-          knex.raw("DATE_FORMAT(NOW(), '%Y-%m-01')"),
-          knex.raw("LAST_DAY(NOW())"),
-        ])
+      const walletDetails = await connection("wallets")
+        .leftJoin("transactions", function () {
+          this.on("wallets.id", "=", "transactions.wallet_id").andOnBetween(
+            "transactions.date",
+            [
+              connection.raw("DATE_FORMAT(NOW(), '%Y-%m-01')"),
+              connection.raw("LAST_DAY(NOW())"),
+            ]
+          );
+        })
+        .where("wallets.id", walletId) // Filtra pela carteira
         .select(
-          knex.raw(
-            'SUM(CASE WHEN type = "income" THEN amount ELSE 0 END) AS totalIncomes'
+          "wallets.id",
+          "wallets.name",
+          connection.raw(
+            'COALESCE(SUM(CASE WHEN transactions.type = "income" THEN amount ELSE 0 END), 0) AS totalIncomes'
           ),
-          knex.raw(
-            'SUM(CASE WHEN type = "expense" THEN amount ELSE 0 END) AS totalExpenses'
+          connection.raw(
+            'COALESCE(SUM(CASE WHEN transactions.type = "expense" THEN amount ELSE 0 END), 0) AS totalExpenses'
           )
-        );
-      return walletDetails;
+        )
+        .groupBy("wallets.id", "wallets.name"); // Necessário para funções agregadas
+
+      // Retorna o primeiro registro ou null
+      return walletDetails[0] || null;
     } catch (err) {
-      console.log(err);
+      console.error(err);
       throw new HttpError("Failed to fetch wallet details", 500);
     }
   }

@@ -23,7 +23,19 @@ export default class UsersController {
         throw new HttpError("Failed to update user", 500);
       }
 
-      return res.status(200).json({ message: "User updated successfully" });
+      const updatedUser = await UsersModel.getUserById(user.id);
+
+      return res.status(200).json(updatedUser);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  static async getUserData(req, res, next) {
+    try {
+      const { user } = req;
+
+      return res.status(200).json(user);
     } catch (err) {
       next(err);
     }
