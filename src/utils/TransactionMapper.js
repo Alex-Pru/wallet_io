@@ -17,9 +17,10 @@ const transactionMapper = (inputObject) => {
   const mappedFields = {};
   for (const key in inputObject) {
     if (transactionMap[key]) {
-      mappedFields[transactionMap[key]] = input[key];
+      mappedFields[transactionMap[key]] = inputObject[key];
     }
   }
+  return mappedFields;
 };
 
 export default transactionMapper;
