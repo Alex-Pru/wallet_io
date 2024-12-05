@@ -1,6 +1,6 @@
 const transactionMap = {
   creditCardId: "credit_card_id",
-  categoryId: "category_id",
+  category_id: "category_id",
   walletId: "wallet_id",
   type: "type",
   amount: "amount",

@@ -94,7 +94,7 @@ export default class TransactionsModel {
   static async getTransactionsFromWallet(
     walletId,
     startDate = connection.raw("DATE_FORMAT(NOW(), '%Y-%m-01')"),
-    endingDate = connection.raw("CURDATE()")
+    endingDate = connection.raw("LAST_DAY(CURDATE())")
   ) {
     try {
       const transactions = await connection("transactions")
@@ -104,6 +104,7 @@ export default class TransactionsModel {
         .where("transactions.wallet_id", walletId)
         .whereBetween("date", [startDate, endingDate])
         .select(
+          "transactions.id",
           "transactions.type",
           "transactions.amount",
           "transactions.title",

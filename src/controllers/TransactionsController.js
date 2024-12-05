@@ -88,8 +88,14 @@ export default class TransactionsController {
 
   static async deleteTransactionHandler(req, res, next) {
     try {
-      const { transactionId } = req.params;
-
+      const { transactionId } = req.query;
+      if (
+        transactionId === "" ||
+        transactionId == null ||
+        transactionId == undefined
+      ) {
+        throw new HttpError("A transaction is expected", 400);
+      }
       const deleted = await TransactionsModel.deleteTransaction(transactionId);
 
       if (!deleted) {
@@ -106,8 +112,12 @@ export default class TransactionsController {
 
   static async updateTransactionHandler(req, res, next) {
     try {
-      const { transactionId } = req.params;
+      const { transactionId } = req.query;
       const { updatedFields } = req.body;
+
+      if (!transactionId) {
+        throw new HttpError("An transaction to update is expected", 400);
+      }
 
       const formattedEditTransaction = transactionMapper(updatedFields);
 
@@ -120,9 +130,11 @@ export default class TransactionsController {
         throw new HttpError("Failed to update transaction", 500);
       }
 
-      return res
-        .status(200)
-        .json({ message: "Transaction updated successfully" });
+      const updatedTransaction = await TransactionsModel.getTransactionById(
+        transactionId
+      );
+
+      return res.status(200).json(updatedTransaction);
     } catch (err) {
       next(err);
     }

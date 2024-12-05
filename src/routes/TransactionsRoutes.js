@@ -24,7 +24,7 @@ router.get(
   TransactionsController.getTransactionsPerWalletHandler
 );
 router.put(
-  "/:transactionId",
+  "/:walletId",
   isAuthenticated,
   roleAuthorizationMiddleware("participant"),
   TransactionsController.updateTransactionHandler
@@ -42,7 +42,7 @@ router.delete(
   TransactionsController.deleteCategoryHandler
 );
 router.delete(
-  "/:transactionId",
+  "/:walletId",
   isAuthenticated,
   roleAuthorizationMiddleware("participant"),
   TransactionsController.deleteTransactionHandler
