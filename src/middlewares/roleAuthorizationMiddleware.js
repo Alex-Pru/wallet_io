@@ -19,14 +19,14 @@ const roleAuthorizationMiddleware = (requiredRole) => {
       if (userRoleIndex === -1 || requiredRoleIndex === -1) {
         const error = new HttpError(
           "Invalid role in request or user role.",
-          403
+          401
         );
         throw error;
       }
 
       // Verifica se o papel do usuário é suficiente para a ação requisitada
       if (userRoleIndex < requiredRoleIndex) {
-        const error = new HttpError("Role not authorized to action", 403);
+        const error = new HttpError("Role not authorized to action", 401);
         throw error;
       }
 

@@ -73,6 +73,7 @@ export default class WalletsModel {
         .join("users", "wallet_users.user_id", "=", "users.id")
         .where("wallet_users.wallet_id", walletId)
         .select(
+          "users.id",
           "users.name",
           "users.email",
           "wallet_users.added_at",
@@ -176,6 +177,22 @@ export default class WalletsModel {
     }
   }
 
+  static async getUserByIdFromWallet(userId, walletId) {
+    try {
+      const user = await connection("wallet_users as ws")
+        .join("users", "ws.user_id", "=", "users.id")
+        .where("ws.wallet_id", walletId) // Substitua walletId pelo valor da variável
+        .andWhere("ws.user_id", userId) // Substitua userId pelo valor da variável
+        .select("ws.role", "users.*") // Retorna todas as colunas de ambas as tabelas
+        .first();
+
+      return user || false;
+    } catch (err) {
+      console.log(err);
+      throw new HttpError("Failed to get user from wallet", 500);
+    }
+  }
+
   static async getUserWalletRole(userId, walletId) {
     try {
       const role = await connection("wallet_users")
@@ -191,30 +208,11 @@ export default class WalletsModel {
   static async getWalletDetails(walletId) {
     try {
       const walletDetails = await connection("wallets")
-        .leftJoin("transactions", function () {
-          this.on("wallets.id", "=", "transactions.wallet_id").andOnBetween(
-            "transactions.date",
-            [
-              connection.raw("DATE_FORMAT(NOW(), '%Y-%m-01')"),
-              connection.raw("LAST_DAY(NOW())"),
-            ]
-          );
-        })
         .where("wallets.id", walletId) // Filtra pela carteira
-        .select(
-          "wallets.id",
-          "wallets.name",
-          connection.raw(
-            'COALESCE(SUM(CASE WHEN transactions.type = "income" THEN amount ELSE 0 END), 0) AS totalIncomes'
-          ),
-          connection.raw(
-            'COALESCE(SUM(CASE WHEN transactions.type = "expense" THEN amount ELSE 0 END), 0) AS totalExpenses'
-          )
-        )
-        .groupBy("wallets.id", "wallets.name"); // Necessário para funções agregadas
+        .first();
 
       // Retorna o primeiro registro ou null
-      return walletDetails[0] || null;
+      return walletDetails || null;
     } catch (err) {
       console.error(err);
       throw new HttpError("Failed to fetch wallet details", 500);

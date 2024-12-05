@@ -64,7 +64,7 @@ export default class UsersModel {
   static async getUsersByEmail(emails) {
     try {
       const usersIDs = await connection("users")
-        .select("id")
+        .select()
         .whereIn("email", emails);
       return usersIDs;
     } catch (err) {

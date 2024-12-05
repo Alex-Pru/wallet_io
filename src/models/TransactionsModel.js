@@ -17,6 +17,19 @@ export default class TransactionsModel {
     }
   }
 
+  static async getCategoriesByWallet(walletId) {
+    try {
+      const categories = await connection("categories")
+        .where({ wallet_id: walletId })
+        .select();
+
+      return categories | [];
+    } catch (err) {
+      console.log(err);
+      throw new HttpError("Failed to get wallet categories", 500);
+    }
+  }
+
   static async deleteCategory(categoryId) {
     try {
       const removedRows = await connection("categories")

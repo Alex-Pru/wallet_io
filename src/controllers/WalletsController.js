@@ -1,3 +1,5 @@
+import TransactionsModel from "../models/TransactionsModel.js";
+import UsersModel from "../models/UsersModel.js";
 import WalletsModel from "../models/WalletsModel.js";
 import HttpError from "../utils/HttpError.js";
 
@@ -56,15 +58,30 @@ export default class WalletsController {
       const { newUser } = req.body;
       const { walletId } = req.params;
 
-      const addedUser = await WalletsModel.addUserToWallet(newUser, walletId);
+      const user = await UsersModel.getUsersByEmail([newUser.email]);
+      const isAlreadyInWallet = await WalletsModel.getUserByIdFromWallet(
+        user[0].id,
+        walletId
+      );
+
+      if (isAlreadyInWallet)
+        throw new HttpError("User is already in wallet", 400);
+
+      const addedUser = await WalletsModel.addUserToWallet(
+        { id: user[0].id, role: newUser.role },
+        walletId
+      );
 
       if (!addedUser) {
         throw new HttpError("Failed to add user to wallet", 500);
       }
 
-      return res
-        .status(200)
-        .json({ message: "User added to wallet successfully" });
+      const userWithRole = await WalletsModel.getUserByIdFromWallet(
+        user[0].id,
+        Number(walletId)
+      );
+
+      return res.status(200).json(userWithRole);
     } catch (err) {
       next(err);
     }
@@ -74,6 +91,11 @@ export default class WalletsController {
     try {
       const { walletId } = req.params;
       const { id: userId } = req.query;
+      const { user } = req;
+
+      if (Number(userId) === user.id) {
+        throw new HttpError("To leave a wallet, go to the home screen", 400);
+      }
 
       if (!userId) {
         throw new HttpError("An user id must be provided", 400);
@@ -133,9 +155,17 @@ export default class WalletsController {
 
   static async updateUserWalletRelationHandler(req, res, next) {
     try {
+      const { user } = req;
       const { walletId } = req.params;
       const { id: userId } = req.query;
       const { role } = req.body;
+
+      if (Number(userId) === user.id) {
+        throw new HttpError(
+          "You may not change your own relation to a wallet",
+          400
+        );
+      }
 
       const updated = await WalletsModel.updateUserWalletRelation(
         userId,
@@ -147,9 +177,12 @@ export default class WalletsController {
         throw new HttpError("Failed to update user-wallet relation", 500);
       }
 
-      return res
-        .status(200)
-        .json({ message: "User-wallet relation updated successfully" });
+      const updatedUser = await WalletsModel.getUserByIdFromWallet(
+        userId,
+        walletId
+      );
+
+      return res.status(200).json(updatedUser);
     } catch (err) {
       next(err);
     }
@@ -180,7 +213,13 @@ export default class WalletsController {
 
       const walletDetails = await WalletsModel.getWalletDetails(walletId);
 
-      return res.status(200).json(walletDetails);
+      const categories = await TransactionsModel.getCategoriesByWallet(
+        walletId
+      );
+
+      const users = await WalletsModel.getAllUsersByWallet(walletId);
+
+      return res.status(200).json({ ...walletDetails, categories, users });
     } catch (err) {
       next(err);
     }
