@@ -9,8 +9,8 @@ router.get("/auth", redirectIfAuthenticated, passport.authenticate("google"));
 router.get(
   "/redirect",
   passport.authenticate("google", {
-    successRedirect: "http://localhost:3000/home",
-    failureRedirect: "http://localhost:3000/login?event=error",
+    successRedirect: `${process.env.CORS_ORIGIN}:${process.env.FRONT_PORT}/home`,
+    failureRedirect: `${process.env.CORS_ORIGIN}:${process.env.FRONT_PORT}/login?event=error`,
   })
 );
 
