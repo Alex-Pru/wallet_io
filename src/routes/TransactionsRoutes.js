@@ -30,13 +30,13 @@ router.put(
   TransactionsController.updateTransactionHandler
 );
 router.put(
-  "/updateCategory/:categoryId",
+  "/updateCategory/:walletId",
   isAuthenticated,
   roleAuthorizationMiddleware("participant"),
   TransactionsController.updateCategoryHandler
 );
 router.delete(
-  "/deleteCategory/:categoryId",
+  "/deleteCategory/:walletId",
   isAuthenticated,
   roleAuthorizationMiddleware("participant"),
   TransactionsController.deleteCategoryHandler

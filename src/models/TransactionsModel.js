@@ -6,7 +6,7 @@ export default class TransactionsModel {
   static async createCategory(newCategory) {
     try {
       const categoryId = await connection("categories").insert({
-        wallet_id: newCategory.wallet,
+        wallet_id: newCategory.wallet_id,
         name: newCategory.name,
         description: newCategory.description,
       });
@@ -23,7 +23,7 @@ export default class TransactionsModel {
         .where({ wallet_id: walletId })
         .select();
 
-      return categories | [];
+      return categories || [];
     } catch (err) {
       console.log(err);
       throw new HttpError("Failed to get wallet categories", 500);
@@ -101,6 +101,20 @@ export default class TransactionsModel {
     } catch (err) {
       console.log(err);
       throw new HttpError("Failed to fetch transaction", 500);
+    }
+  }
+
+  static async getCategoryById(categoryId) {
+    try {
+      const category = await connection("categories")
+        .where({ id: categoryId })
+        .select()
+        .first();
+
+      return category;
+    } catch (err) {
+      console.log(err);
+      throw new HttpError("Failed to get category", 500);
     }
   }
 

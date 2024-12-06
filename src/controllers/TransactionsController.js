@@ -8,7 +8,7 @@ export default class TransactionsController {
       const { walletId } = req.params;
       const { newCategory } = req.body;
 
-      newCategory.wallet = walletId;
+      newCategory.wallet_id = walletId;
 
       const categoryId = await TransactionsModel.createCategory(newCategory);
 
@@ -16,7 +16,7 @@ export default class TransactionsController {
         throw new HttpError("Failed to create category", 500);
       }
 
-      return res.status(201).json({ categoryId });
+      return res.status(201).json({ ...newCategory, id: categoryId });
     } catch (err) {
       next(err);
     }
@@ -24,7 +24,11 @@ export default class TransactionsController {
 
   static async deleteCategoryHandler(req, res, next) {
     try {
-      const { categoryId } = req.body;
+      const { categoryId } = req.query;
+
+      if (categoryId === undefined || categoryId === null) {
+        throw new HttpError("A category is expected", 400);
+      }
 
       const deleted = await TransactionsModel.deleteCategory(categoryId);
 
@@ -32,7 +36,7 @@ export default class TransactionsController {
         throw new HttpError("Failed to delete category", 500);
       }
 
-      return res.status(200).json({ message: "Category deleted successfully" });
+      return res.status(200).json(categoryId);
     } catch (err) {
       next(err);
     }
@@ -40,7 +44,12 @@ export default class TransactionsController {
 
   static async updateCategoryHandler(req, res, next) {
     try {
-      const { categoryId, updatedFields } = req.body;
+      const { categoryId } = req.query;
+      const { updatedFields } = req.body;
+
+      if (categoryId === undefined || categoryId === null) {
+        throw new HttpError("A category is expected", 400);
+      }
 
       const updated = await TransactionsModel.updateCategory(
         categoryId,
@@ -51,7 +60,11 @@ export default class TransactionsController {
         throw new HttpError("Failed to update category", 500);
       }
 
-      return res.status(200).json({ message: "Category updated successfully" });
+      const updatedCategory = await TransactionsModel.getCategoryById(
+        categoryId
+      );
+
+      return res.status(200).json(updatedCategory);
     } catch (err) {
       next(err);
     }
